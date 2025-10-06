@@ -121,21 +121,10 @@
                             </a></li>
                         </ul>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="mapDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-map me-1"></i>Mapas
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'index' %}">
+                            <i class="fas fa-map me-1"></i>Mapa
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'index' %}">
-                                <i class="fas fa-map-marked-alt me-2"></i>Google Maps
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'index_osm' %}">
-                                <i class="fas fa-globe me-2"></i>OpenStreetMap (Gratuito)
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'index_nasa' %}">
-                                <i class="fas fa-satellite me-2"></i>NASA Worldview (Satelital)
-                            </a></li>
-                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dashboard' %}">

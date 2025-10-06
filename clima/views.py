@@ -4,76 +4,14 @@ from django.http import JsonResponse
 from .models import RegistroClima, Login
 from .forms import create_registro_clima_form
 from django.core.paginator import Paginator
-from .nasa_service import nasa_service
-from .nasa_config import NASA_LAYERS, LAYER_CATEGORIES
+# Importaciones de NASA eliminadas - solo se usa OpenStreetMap
 from .translation_utils import get_text, get_language_from_request, set_language_cookie, convert_temperature, convert_wind_speed, convert_distance, convert_visibility, convert_pressure_to_display
 import json
 import hashlib
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 
-def index(request):
-    """Página principal con formulario para ingresar datos"""
-    # Verificar autenticación simple
-    if not request.session.get('usuario_autenticado'):
-        return redirect('/login/')
-    
-    # Obtener idioma
-    language = get_language_from_request(request)
-    
-    if request.method == 'POST':
-        form = create_registro_clima_form(language)(request.POST)
-        if form.is_valid():
-            registro = form.save()
-            messages.success(request, get_text('Pronóstico calculado exitosamente', language))
-            return redirect('pronostico', registro_id=registro.id)
-    else:
-        form = create_registro_clima_form(language)()
-    
-    # Obtener los últimos 5 registros y convertir unidades según idioma
-    ultimos_registros_raw = RegistroClima.objects.all().order_by('-fecha')[:5]
-    ultimos_registros = []
-    for registro in ultimos_registros_raw:
-        registro_convertido = {
-            'id': registro.id,
-            'fecha': registro.fecha,
-            'temperatura': convert_temperature(registro.temperatura, language == 'en') if language == 'en' else registro.temperatura,
-            'humedad': registro.humedad,
-            'velocidad_viento': convert_wind_speed(registro.velocidad_viento, language == 'en') if language == 'en' else registro.velocidad_viento,
-            'presion': registro.presion,
-            'altura': convert_distance(registro.altura, language == 'en') if language == 'en' else registro.altura,
-            'nubosidad': registro.nubosidad,
-            'latitud': registro.latitud,
-            'longitud': registro.longitud,
-        }
-        ultimos_registros.append(registro_convertido)
-    
-    # Crear contexto con traducciones
-    context = {
-        'form': form,
-        'ultimos_registros': ultimos_registros,
-        'language': language,
-        'texts': {
-            'title': get_text('Sistema de Pronóstico Climático', language),
-            'subtitle': get_text('Pronóstico Climático Inteligente', language),
-            'description': get_text('Ingrese los datos meteorológicos para calcular el pronóstico', language),
-            'recent_records': get_text('Registros Recientes', language),
-            'temperature': get_text('Temperatura', language),
-            'humidity': get_text('Humedad Relativa', language),
-            'pressure': get_text('Presión Atmosférica', language),
-            'wind_speed': get_text('Velocidad del Viento', language),
-            'altitude': get_text('Altura sobre el Nivel del Mar', language),
-            'cloudiness': get_text('Nubosidad', language),
-            'latitude': get_text('Latitud', language),
-            'longitude': get_text('Longitud', language),
-            'search_location': get_text('Buscar Ubicación', language),
-            'calculate_forecast': get_text('Calcular Pronóstico', language),
-            'view_forecast': get_text('Ver Pronóstico', language),
-        }
-    }
-    
-    response = render(request, 'clima/index.html', context)
-    return set_language_cookie(response, language)
+# Función index eliminada - ahora se usa index_osm como página principal
 
 def index_osm(request):
     """Página principal con OpenStreetMap"""
@@ -163,44 +101,10 @@ def index_osm(request):
         }
     }
     
-    response = render(request, 'clima/index_osm.html', context)
+    response = render(request, 'clima/index.html', context)
     return set_language_cookie(response, language)
 
-def index_nasa(request):
-    """Página principal con NASA Worldview/GIBS"""
-    # Obtener idioma
-    language = get_language_from_request(request)
-    
-    if request.method == 'POST':
-        form = create_registro_clima_form(language)(request.POST)
-        if form.is_valid():
-            registro = form.save()
-            messages.success(request, get_text('Pronóstico calculado exitosamente', language))
-            return redirect('pronostico', registro_id=registro.id)
-    else:
-        form = create_registro_clima_form(language)()
-    
-    # Obtener los últimos 5 registros
-    ultimos_registros = RegistroClima.objects.all().order_by('-fecha')[:5]
-    
-    # Obtener datos de NASA si se proporcionan coordenadas
-    nasa_data = None
-    if request.GET.get('lat') and request.GET.get('lon'):
-        try:
-            lat = float(request.GET.get('lat'))
-            lon = float(request.GET.get('lon'))
-            nasa_data = nasa_service.get_weather_summary(lat, lon)
-        except (ValueError, TypeError):
-            pass
-    
-    context = {
-        'form': form,
-        'ultimos_registros': ultimos_registros,
-        'nasa_layers': NASA_LAYERS,
-        'layer_categories': LAYER_CATEGORIES,
-        'nasa_data': nasa_data,
-    }
-    return render(request, 'clima/index_nasa.html', context)
+# Función index_nasa eliminada - solo se usa OpenStreetMap
 
 def pronostico(request, registro_id):
     """Página de pronóstico detallado"""
@@ -605,45 +509,7 @@ def dashboard(request):
     response = render(request, 'clima/dashboard.html', context)
     return set_language_cookie(response, language)
 
-def api_nasa_data(request):
-    """API para obtener datos de NASA Worldview"""
-    try:
-        lat = float(request.GET.get('lat', 0))
-        lon = float(request.GET.get('lon', 0))
-        layer_id = request.GET.get('layer', 'MODIS_Terra_Land_Surface_Temperature_Day')
-        
-        if lat == 0 and lon == 0:
-            return JsonResponse({'error': 'Coordenadas requeridas'}, status=400)
-        
-        # Datos simulados realistas para Piura
-        if lat >= -6.0 and lat <= -4.0 and lon >= -81.0 and lon <= -79.0:
-            # Zona de Piura - clima desértico tropical
-            temperatura_base = 28.0 + (lat + 5.0) * 2.0  # Más cálido hacia el norte
-            humedad_base = 45.0 - (lat + 5.0) * 5.0      # Menos humedad hacia el norte
-        else:
-            # Otras zonas - datos genéricos
-            temperatura_base = 22.0 + (lat * 0.5)
-            humedad_base = 60.0 + (lon * 0.1)
-        
-        simulated_data = {
-            'success': True,
-            'data': {
-                'temperature': round(temperatura_base, 1),
-                'cloud_cover': max(5.0, min(30.0, 15.0 + (lon * 0.1))),  # Cielo despejado en Piura
-                'pressure': round(1012.0 + (lat * 0.2), 1),
-                'humidity': max(20.0, min(80.0, humedad_base))
-            },
-            'timestamp': datetime.now().isoformat(),
-            'layer_id': layer_id,
-            'location': {'lat': lat, 'lon': lon}
-        }
-        
-        return JsonResponse(simulated_data)
-    
-    except (ValueError, TypeError) as e:
-        return JsonResponse({'error': 'Parámetros inválidos'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
+# Función api_nasa_data eliminada - solo se usa OpenStreetMap
 
 def visual(request):
     """Versión visual para usuarios normales con datos reales"""
