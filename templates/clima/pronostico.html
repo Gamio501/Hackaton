@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ texts.forecast_title }} - {{ registro.fecha|date:"d/m/Y H:i" }}{% endblock %}
+
+{% block content %}
+<!-- Selector de idioma directo en la página -->
+<div class="row mb-3">
+    <div class="col-12 text-end">
+        <div class="btn-group" role="group">
+            <a href="?lang=es" class="btn btn-sm {% if language == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                🇪🇸 Español
+            </a>
+            <a href="?lang=en" class="btn btn-sm {% if language == 'en' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                🇺🇸 English
+            </a>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cloud-sun me-2"></i>
+                        {{ texts.forecast_title }}
+                    </h4>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ registro.fecha|date:"d/m/Y H:i" }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="weather-icon text-primary">
+                            {% if pronostico.condicion == 'Lluvioso' %}
+                                <i class="fas fa-cloud-rain"></i>
+                            {% elif pronostico.condicion == 'Nublado' %}
+                                <i class="fas fa-cloud"></i>
+                            {% elif pronostico.condicion == 'Parcialmente nublado' %}
+                                <i class="fas fa-cloud-sun"></i>
+                            {% else %}
+                                <i class="fas fa-sun"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-primary">{{ pronostico.condicion_translated }}</h3>
+                        <p class="text-muted">{{ pronostico.descripcion_translated }}</p>
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-thermometer-half text-danger me-2"></i>{{ texts.main_data }}</h5>
+                                <ul class="list-unstyled">
+                                    <li><strong>{{ texts.temperature }}:</strong> {{ registro.temperatura }}{% if language == 'en' %}°F{% else %}°C{% endif %}</li>
+                                    <li><strong>{{ texts.humidity }}:</strong> {{ registro.humedad }}%</li>
+                                    <li><strong>{{ texts.pressure }}:</strong> {{ registro.presion }} {% if language == 'en' %}inHg{% else %}hPa{% endif %}</li>
+                                    <li><strong>{{ texts.wind_speed }}:</strong> {{ registro.velocidad_viento }} {% if language == 'en' %}mph{% else %}km/h{% endif %}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-map-marker-alt text-info me-2"></i>{{ texts.location }}</h5>
+                                <ul class="list-unstyled">
+                                    <li><strong>{{ texts.latitude }}:</strong> {{ registro.latitud }}°</li>
+                                    <li><strong>{{ texts.longitude }}:</strong> {{ registro.longitud }}°</li>
+                                    <li><strong>{{ texts.altitude }}:</strong> {{ registro.altura }} {% if language == 'en' %}ft{% else %}m{% endif %}</li>
+                                    <li><strong>{{ texts.season }}:</strong> {{ estacion_translated }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>
+                    {{ texts.meteorological_calculations }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h3>{{ indice_calor }}{% if language == 'en' %}°F{% else %}°C{% endif %}</h3>
+                            <p>{{ texts.heat_index }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h3>{{ sensacion_termica }}{% if language == 'en' %}°F{% else %}°C{% endif %}</h3>
+                            <p>{{ texts.thermal_sensation }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h3>{{ punto_rocio }}{% if language == 'en' %}°F{% else %}°C{% endif %}</h3>
+                            <p>{{ texts.dew_point }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h3>{{ presion_ajustada }} {% if language == 'en' %}inHg{% else %}hPa{% endif %}</h3>
+                            <p>{{ texts.adjusted_pressure }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    {{ texts.forecast_analysis }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>{{ texts.rain_probability }}</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {{ pronostico.probabilidad_lluvia }}%">
+                            {{ pronostico.probabilidad_lluvia }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>{{ texts.cloudiness }}</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-secondary" role="progressbar" 
+                             style="width: {{ registro.nubosidad }}%">
+                            {{ registro.nubosidad }}%
+                        </div>
+                    </div>
+                </div>
+                
+                {% if pronostico.recomendaciones %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>{{ texts.recommendations }}</h6>
+                        <ul class="mb-0">
+                            {% for recomendacion in pronostico.recomendaciones_translated %}
+                                <li>{{ recomendacion }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ texts.data_interpretation }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-thermometer-half text-danger me-2"></i>{{ texts.heat_index }}</h6>
+                        <p class="small">
+                            {{ texts.heat_index_description }}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-wind text-primary me-2"></i>{{ texts.thermal_sensation }}</h6>
+                        <p class="small">
+                            {{ texts.thermal_sensation_description }}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-tint text-info me-2"></i>{{ texts.dew_point }}</h6>
+                        <p class="small">
+                            {{ texts.dew_point_description }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{% url 'index' %}" class="btn btn-primary me-2">
+            <i class="fas fa-plus me-2"></i>
+            {{ texts.new_forecast }}
+        </a>
+        <a href="{% url 'historial' %}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-history me-2"></i>
+            {{ texts.view_history }}
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-info">
+            <i class="fas fa-chart-line me-2"></i>
+            {{ texts.dashboard }}
+        </a>
+    </div>
+</div>
+{% endblock %}

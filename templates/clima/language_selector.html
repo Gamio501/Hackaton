@@ -1,0 +1,40 @@
+<!-- Selector de idioma simple -->
+<div class="language-selector">
+    <div class="btn-group" role="group">
+        <a href="?lang=es" class="btn btn-sm {% if language == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            🇪🇸 Español
+        </a>
+        <a href="?lang=en" class="btn btn-sm {% if language == 'en' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            🇺🇸 English
+        </a>
+    </div>
+</div>
+
+<style>
+.language-selector {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.language-selector .btn {
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    transition: all 0.3s ease;
+}
+
+.language-selector .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+</style>
+

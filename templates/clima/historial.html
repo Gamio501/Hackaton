@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ texts.title }} - {{ texts.subtitle }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        {{ texts.title }}
+                    </h4>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ page_obj.paginator.count }} registros
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>{{ texts.date }}</th>
+                                    <th>{{ texts.temperature }}</th>
+                                    <th>{{ texts.humidity }}</th>
+                                    <th>{{ texts.pressure }}</th>
+                                    <th>{{ texts.wind_speed }}</th>
+                                    <th>{{ texts.cloudiness }}</th>
+                                    <th>{{ texts.location }}</th>
+                                    <th>{{ texts.actions }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for registro in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-calendar-alt text-primary me-1"></i>
+                                            {{ registro.fecha|date:"d/m/Y" }}
+                                            <br>
+                                            <small class="text-muted">{{ registro.fecha|time:"H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger fs-6">{{ registro.temperatura }}{% if language == 'en' %}°F{% else %}°C{% endif %}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-tint text-info me-2"></i>
+                                                {{ registro.humedad }}%
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-compress-arrows-alt text-warning me-2"></i>
+                                                {{ registro.presion }} hPa
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-wind text-primary me-2"></i>
+                                                {{ registro.velocidad_viento }} {% if language == 'en' %}mph{% else %}km/h{% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="width: 80px; height: 20px;">
+                                                <div class="progress-bar bg-secondary" 
+                                                     style="width: {{ registro.nubosidad }}%">
+                                                    {{ registro.nubosidad }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="location-info">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-map-marker-alt text-success me-2"></i>
+                                                    <div>
+                                                        {% if registro.nombre_lugar %}
+                                                            <strong class="text-dark fs-6">{{ registro.nombre_lugar }}</strong>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-crosshairs me-1"></i>
+                                                                {{ registro.latitud }}°, {{ registro.longitud }}°
+                                                            </small>
+                                                        {% else %}
+                                                            <strong class="text-dark fs-6">{{ registro.latitud }}°, {{ registro.longitud }}°</strong>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="location-details">
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-mountain text-warning me-1"></i>
+                                                        <span class="text-muted">{{ texts.altitude }}:</span>
+                                                        <strong>{{ registro.altura }}{% if language == 'en' %}ft{% else %}m{% endif %}</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'pronostico' registro.id %}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="{{ texts.view_forecast }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'api_pronostico' registro.id %}" 
+                                                   class="btn btn-sm btn-outline-info" 
+                                                   title="Ver JSON"
+                                                   target="_blank">
+                                                    <i class="fas fa-code"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Paginación del historial">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-cloud-rain fa-5x text-muted mb-4"></i>
+                        <h4 class="text-muted">{{ texts.no_records }}</h4>
+                        <p class="text-muted">{{ texts.no_records }}</p>
+                        <a href="{% url 'index' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            {{ texts.calculate_forecast }}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{% url 'index' %}" class="btn btn-primary me-2">
+            <i class="fas fa-plus me-2"></i>
+            {{ texts.calculate_forecast }}
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-info">
+            <i class="fas fa-chart-line me-2"></i>
+            {{ texts.dashboard }}
+        </a>
+    </div>
+</div>
+
+<style>
+.location-info {
+    min-width: 200px;
+}
+
+.location-details {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.location-details > div {
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.location-coords {
+    border-top: 1px solid #dee2e6;
+    padding-top: 5px;
+    margin-top: 5px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.location-info strong {
+    font-size: 0.95em;
+}
+
+.location-info .text-muted {
+    font-size: 0.85em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .location-info {
+        min-width: 150px;
+    }
+    
+    .location-details {
+        padding: 8px;
+    }
+    
+    .location-details > div {
+        font-size: 0.8em;
+    }
+}
+</style>
+{% endblock %}

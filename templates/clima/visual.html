@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherApp - Pronóstico del Tiempo</title>
+    <link rel="stylesheet" href="/static/hacketon/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+    <div class="alert-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Alerta de Tormenta Severa</span>
+    </div>
+
+    <div class="container">
+
+        <header class="header">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar ciudad..." class="search-input" id="search-input">
+                <button class="search-btn" id="search-btn" title="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn" id="weather-report-btn" title="Reporte del clima">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reporte</span>
+                </button>
+                <div class="location-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Madrid, España</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="mobile-layout">
+            <!-- Main Weather Display -->
+            <section class="main-weather">
+                <div class="weather-header">
+                    <div class="weather-calendar">
+                        <div class="calendar-date" id="current-date">Lunes, 15 de Enero</div>
+                        <div class="calendar-time" id="current-time">14:30</div>
+                    </div>
+                    <div class="weather-location" id="main-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ datos_clima.nombre_lugar }}</span>
+                    </div>
+                    <div class="coordinates" id="coordinates-display">
+                        Ubicación ({{ datos_clima.latitud }}, {{ datos_clima.longitud }})
+                    </div>
+                </div>
+                <div class="temperature-display">
+                    <div class="temp-value">{{ datos_clima.temperatura }}°C</div>
+                    <div class="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                </div>
+                <div class="weather-description">
+                    {{ datos_clima.condicion }}
+                </div>
+            </section>
+
+            <section class="weather-details">
+                <div class="detail-item">
+                    <i class="fas fa-wind"></i>
+                    <span class="detail-label">Viento</span>
+                    <span class="detail-value">{{ datos_clima.velocidad_viento }} km/h</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-tint"></i>
+                    <span class="detail-label">Humedad</span>
+                    <span class="detail-value">{{ datos_clima.humedad }}%</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-cloud"></i>
+                    <span class="detail-label">Nubosidad</span>
+                    <span class="detail-value">{{ datos_clima.nubosidad }}%</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-mountain"></i>
+                    <span class="detail-label">Altura</span>
+                    <span class="detail-value">{{ datos_clima.altura }} m</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-thermometer-half"></i>
+                    <span class="detail-label">Sensación</span>
+                    <span class="detail-value">{{ datos_clima.temperatura|add:2 }}°C</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-compress-arrows-alt"></i>
+                    <span class="detail-label">Presión</span>
+                    <span class="detail-value">{{ datos_clima.presion }} hPa</span>
+                </div>
+            </section>
+
+            <section class="hourly-forecast">
+                <div class="hourly-header">
+                    <h3>Pronóstico por Horas</h3>
+                    <div class="hourly-navigation">
+                        <button class="nav-arrow nav-prev" id="hourly-prev" title="Horas anteriores">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="nav-info" id="hourly-info">Hora actual</span>
+                        <button class="nav-arrow nav-next" id="hourly-next" title="Horas siguientes">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="hourly-container">
+                    <div class="hourly-list" id="hourly-list">
+                        
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Forecast -->
+            <section class="weekly-forecast">
+                <h3>Pronóstico Semanal</h3>
+                <div class="weekly-grid">
+                    <div class="day-item">
+                        <span class="day-name">Hoy</span>
+                        <i class="fas fa-sun"></i>
+                        <span class="day-temp">26° / 17°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Mañana</span>
+                        <i class="fas fa-cloud-sun"></i>
+                        <span class="day-temp">24° / 15°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Miércoles</span>
+                        <i class="fas fa-cloud-rain"></i>
+                        <span class="day-temp">22° / 13°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Jueves</span>
+                        <i class="fas fa-cloud"></i>
+                        <span class="day-temp">20° / 12°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Viernes</span>
+                        <i class="fas fa-sun"></i>
+                        <span class="day-temp">25° / 16°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Sábado</span>
+                        <i class="fas fa-cloud-sun"></i>
+                        <span class="day-temp">23° / 14°</span>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-name">Domingo</span>
+                        <i class="fas fa-sun"></i>
+                        <span class="day-temp">26° / 17°</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Map Section -->
+            <section class="map-section">
+                <h3><i class="fas fa-map"></i> Mapa Interactivo</h3>
+                <div class="map-container">
+                    <div id="interactive-map"></div>
+                    <div class="map-controls">
+                        <button class="map-btn" id="locate-btn" title="Mi ubicación">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                        <button class="map-btn" id="layer-btn" title="Cambiar capa">
+                            <i class="fas fa-layer-group"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Enhanced Radar Map -->
+            <section class="radar-section">
+                <div class="radar-header">
+                    <h3><i class="fas fa-satellite-dish"></i> Radar Meteorológico</h3>
+                    <div class="radar-controls">
+                        <button class="radar-btn" id="play-radar" title="Reproducir animación">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="radar-btn" id="pause-radar" title="Pausar animación">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button class="radar-btn" id="refresh-radar" title="Actualizar radar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="radar-container">
+                    <div class="radar-map">
+                        <div class="radar-overlay">
+                            <div class="radar-legend">
+                                <h4>Intensidad de Precipitación</h4>
+                                <div class="legend-items">
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: #00ff00;"></div>
+                                        <span>Ligera (0-2 mm/h)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: #ffff00;"></div>
+                                        <span>Moderada (2-10 mm/h)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: #ff8000;"></div>
+                                        <span>Fuerte (10-25 mm/h)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: #ff0000;"></div>
+                                        <span>Muy Fuerte (25+ mm/h)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="radar-info">
+                                <div class="info-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Última actualización: <span id="radar-time">--:--</span></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-eye"></i>
+                                    <span>Rango: <span id="radar-range">250 km</span></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-cloud-rain"></i>
+                                    <span>Precipitación: <span id="radar-precipitation">0 mm/h</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Desktop Layout (Multi-Column) -->
+        <div class="desktop-layout">
+            <!-- Left Panel - Main Weather -->
+            <div class="left-panel">
+                <section class="main-weather-desktop">
+                    <div class="weather-header-desktop">
+                        <div class="weather-calendar-desktop">
+                            <div class="calendar-date-desktop" id="current-date-desktop">Lunes, 15 de Enero</div>
+                            <div class="calendar-time-desktop" id="current-time-desktop">14:30</div>
+                        </div>
+                    </div>
+                    <div class="temperature-display-desktop">
+                        <div class="temp-value-desktop">{{ datos_clima.temperatura }}°C</div>
+                        <div class="weather-icon-desktop">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                    </div>
+                    <div class="weather-description-desktop">
+                        {{ datos_clima.condicion }}
+                    </div>
+                    <div class="location-desktop" id="main-location-desktop">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ datos_clima.nombre_lugar }}</span>
+                    </div>
+                    <div class="coordinates" id="coordinates-display-desktop">
+                        Ubicación ({{ datos_clima.latitud }}, {{ datos_clima.longitud }})
+                    </div>
+                </section>
+
+                <!-- Weather Details Desktop -->
+                <section class="weather-details-desktop">
+                    <div class="detail-grid">
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-wind"></i>
+                            <span class="detail-label">Viento</span>
+                            <span class="detail-value">12 km/h</span>
+                        </div>
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-tint"></i>
+                            <span class="detail-label">Humedad</span>
+                            <span class="detail-value">65%</span>
+                        </div>
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-sun"></i>
+                            <span class="detail-label">UV</span>
+                            <span class="detail-value">7</span>
+                        </div>
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-eye"></i>
+                            <span class="detail-label">Visibilidad</span>
+                            <span class="detail-value">10 km</span>
+                        </div>
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-thermometer-half"></i>
+                            <span class="detail-label">Sensación</span>
+                            <span class="detail-value">27°C</span>
+                        </div>
+                        <div class="detail-item-desktop">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                            <span class="detail-label">Presión</span>
+                            <span class="detail-value">1013 hPa</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Top Right - Hourly Forecast -->
+                <section class="hourly-forecast-desktop">
+                    <div class="hourly-header-desktop">
+                        <h3>Pronóstico por Horas</h3>
+                        <div class="hourly-navigation-desktop">
+                            <button class="nav-arrow nav-prev" id="hourly-prev-desktop" title="Horas anteriores">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="nav-info" id="hourly-info-desktop">Hora actual</span>
+                            <button class="nav-arrow nav-next" id="hourly-next-desktop" title="Horas siguientes">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hourly-container-desktop">
+                        <div class="hourly-list-desktop" id="hourly-list-desktop">
+                            <!-- Hours will be generated dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bottom Right - Weekly and Radar -->
+                <div class="bottom-right">
+                    <!-- Weekly Forecast Desktop -->
+                    <section class="weekly-forecast-desktop">
+                        <h3>Pronóstico Semanal</h3>
+                        <div class="weekly-grid-desktop">
+                            <div class="day-item-desktop">
+                                <span class="day-name">Hoy</span>
+                                <i class="fas fa-sun"></i>
+                                <span class="day-temp">26° / 17°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Mañana</span>
+                                <i class="fas fa-cloud-sun"></i>
+                                <span class="day-temp">24° / 15°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Miércoles</span>
+                                <i class="fas fa-cloud-rain"></i>
+                                <span class="day-temp">22° / 13°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Jueves</span>
+                                <i class="fas fa-cloud"></i>
+                                <span class="day-temp">20° / 12°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Viernes</span>
+                                <i class="fas fa-sun"></i>
+                                <span class="day-temp">25° / 16°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Sábado</span>
+                                <i class="fas fa-cloud-sun"></i>
+                                <span class="day-temp">23° / 14°</span>
+                            </div>
+                            <div class="day-item-desktop">
+                                <span class="day-name">Domingo</span>
+                                <i class="fas fa-sun"></i>
+                                <span class="day-temp">26° / 17°</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Interactive Map Desktop -->
+                    <section class="map-section-desktop">
+                        <h3><i class="fas fa-map"></i> Mapa Interactivo</h3>
+                        <div class="map-container-desktop">
+                            <div id="interactive-map-desktop"></div>
+                            <div class="map-controls-desktop">
+                                <button class="map-btn" id="locate-btn-desktop" title="Mi ubicación">
+                                    <i class="fas fa-crosshairs"></i>
+                                </button>
+                                <button class="map-btn" id="layer-btn-desktop" title="Cambiar capa">
+                                    <i class="fas fa-layer-group"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Enhanced Radar Map Desktop -->
+                    <section class="radar-section-desktop">
+                        <div class="radar-header-desktop">
+                            <h3><i class="fas fa-satellite-dish"></i> Radar Meteorológico</h3>
+                            <div class="radar-controls-desktop">
+                                <button class="radar-btn" id="play-radar-desktop" title="Reproducir animación">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="radar-btn" id="pause-radar-desktop" title="Pausar animación">
+                                    <i class="fas fa-pause"></i>
+                                </button>
+                                <button class="radar-btn" id="refresh-radar-desktop" title="Actualizar radar">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="radar-container-desktop">
+                            <div class="radar-map-desktop">
+                                <div class="radar-overlay-desktop">
+                                    <div class="radar-legend-desktop">
+                                        <h4>Intensidad de Precipitación</h4>
+                                        <div class="legend-items-desktop">
+                                            <div class="legend-item">
+                                                <div class="legend-color" style="background: #00ff00;"></div>
+                                                <span>Ligera (0-2 mm/h)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <div class="legend-color" style="background: #ffff00;"></div>
+                                                <span>Moderada (2-10 mm/h)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <div class="legend-color" style="background: #ff8000;"></div>
+                                                <span>Fuerte (10-25 mm/h)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <div class="legend-color" style="background: #ff0000;"></div>
+                                                <span>Muy Fuerte (25+ mm/h)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="radar-info-desktop">
+                                        <div class="info-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Última actualización: <span id="radar-time-desktop">--:--</span></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-eye"></i>
+                                            <span>Rango: <span id="radar-range-desktop">250 km</span></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-cloud-rain"></i>
+                                            <span>Precipitación: <span id="radar-precipitation-desktop">0 mm/h</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Report Modal -->
+    <div class="modal-overlay" id="weather-report-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-line"></i> Reporte Meteorológico Avanzado</h2>
+                <button class="modal-close" id="close-report-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="report-config">
+                    <h3>Configuración del Reporte</h3>
+                    <div class="config-options">
+                        <div class="form-group">
+                            <label for="report-location">Ubicación</label>
+                            <input type="text" id="report-location" placeholder="Madrid, España" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="report-period">Período de Predicción</label>
+                            <select id="report-period">
+                                <option value="7">7 días</option>
+                                <option value="14">14 días</option>
+                                <option value="30">30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="report-type">Tipo de Reporte</label>
+                            <select id="report-type">
+                                <option value="detailed">Detallado</option>
+                                <option value="summary">Resumen</option>
+                                <option value="extended">Extendido</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="generate-report">
+                            <i class="fas fa-magic"></i> Generar Reporte
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="weather-report-content">
+                    <div class="report-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Selecciona los parámetros y genera tu reporte meteorológico</h3>
+                        <p>Utiliza fórmulas meteorológicas avanzadas para predicciones precisas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/hacketon/script.js"></script>
+</body>
+</html>

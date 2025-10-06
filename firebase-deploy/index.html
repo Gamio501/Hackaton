@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherApp - Pronóstico del Tiempo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+    <div class="alert-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Alerta de Tormenta Severa</span>
+    </div>
+
+    <div class="container">
+
+        <header class="header">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar ciudad..." class="search-input" id="search-input">
+                <button class="search-btn" id="search-btn" title="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn" id="weather-report-btn" title="Reporte del clima">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reporte</span>
+                </button>
+                <div class="location-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="main-location">Piura, Perú</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="mobile-layout">
+            <!-- Main Weather Display -->
+            <section class="main-weather">
+                <div class="weather-header">
+                    <div class="weather-calendar">
+                        <div class="calendar-date" id="current-date">Lunes, 15 de Enero</div>
+                        <div class="calendar-time" id="current-time">14:30</div>
+                    </div>
+                    <div class="weather-location" id="main-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Piura, Perú</span>
+                    </div>
+                    <div class="coordinates" id="coordinates-display">
+                        Ubicación (-5.19449, -80.6328)
+                    </div>
+                </div>
+                <div class="temperature-display">
+                    <div class="temp-value" id="main-temp">28°C</div>
+                    <div class="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                </div>
+                <div class="weather-description" id="weather-condition">
+                    Parcialmente nublado
+                </div>
+            </section>
+
+            <section class="weather-details">
+                <div class="detail-item">
+                    <i class="fas fa-wind"></i>
+                    <span class="detail-label">Viento</span>
+                    <span class="detail-value" id="wind-speed">12 km/h</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-tint"></i>
+                    <span class="detail-label">Humedad</span>
+                    <span class="detail-value" id="humidity">65%</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-cloud"></i>
+                    <span class="detail-label">Nubosidad</span>
+                    <span class="detail-value" id="cloudiness">35%</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-mountain"></i>
+                    <span class="detail-label">Altura</span>
+                    <span class="detail-value" id="altitude">26 m</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-thermometer-half"></i>
+                    <span class="detail-label">Sensación</span>
+                    <span class="detail-value" id="feels-like">30°C</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-compress-arrows-alt"></i>
+                    <span class="detail-label">Presión</span>
+                    <span class="detail-value" id="pressure">1013 hPa</span>
+                </div>
+            </section>
+
+            <!-- Hourly Forecast -->
+            <section class="hourly-forecast">
+                <div class="section-header">
+                    <h3>Pronóstico por Horas</h3>
+                    <div class="hourly-nav">
+                        <button id="hourly-prev" class="nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="hourly-next" class="nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="hourly-container" id="hourly-container">
+                    <!-- Las horas se cargarán dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Interactive Map -->
+            <section class="map-section">
+                <div class="section-header">
+                    <h3>Mapa Interactivo</h3>
+                    <div class="map-controls">
+                        <button class="map-btn active" data-layer="satellite">
+                            <i class="fas fa-satellite"></i>
+                            Satélite
+                        </button>
+                        <button class="map-btn" data-layer="street">
+                            <i class="fas fa-road"></i>
+                            Calle
+                        </button>
+                        <button class="map-btn" data-layer="dark">
+                            <i class="fas fa-moon"></i>
+                            Oscuro
+                        </button>
+                    </div>
+                </div>
+                <div id="mobile-map" class="map-container"></div>
+            </section>
+
+            <!-- Enhanced Radar -->
+            <section class="radar-section">
+                <div class="section-header">
+                    <h3>Radar Meteorológico</h3>
+                    <div class="radar-controls">
+                        <button id="radar-play" class="radar-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="radar-pause" class="radar-btn">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button id="radar-refresh" class="radar-btn">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="radar-container">
+                    <div class="radar-display" id="radar-display">
+                        <div class="radar-sweep"></div>
+                        <div class="precipitation-layer">
+                            <div class="precipitation-dot" style="top: 20%; left: 30%;"></div>
+                            <div class="precipitation-dot" style="top: 40%; left: 60%;"></div>
+                            <div class="precipitation-dot" style="top: 70%; left: 20%;"></div>
+                        </div>
+                    </div>
+                    <div class="radar-legend">
+                        <div class="legend-item">
+                            <div class="legend-color light"></div>
+                            <span>Lluvia Ligera</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color moderate"></div>
+                            <span>Lluvia Moderada</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color heavy"></div>
+                            <span>Lluvia Intensa</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Desktop Layout -->
+        <div class="desktop-layout">
+            <div class="desktop-main">
+                <section class="desktop-weather">
+                    <div class="desktop-weather-header">
+                        <div class="desktop-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Piura, Perú</span>
+                        </div>
+                        <div class="desktop-date-time">
+                            <div class="desktop-date" id="desktop-date">Lunes, 15 de Enero</div>
+                            <div class="desktop-time" id="desktop-time">14:30</div>
+                        </div>
+                    </div>
+                    <div class="desktop-temperature">
+                        <div class="desktop-temp-value" id="desktop-temp">28°C</div>
+                        <div class="desktop-weather-icon">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                    </div>
+                    <div class="desktop-weather-desc" id="desktop-condition">
+                        Parcialmente nublado
+                    </div>
+                </section>
+
+                <section class="desktop-details">
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-wind"></i>
+                        <span class="detail-label">Viento</span>
+                        <span class="detail-value" id="desktop-wind">12 km/h</span>
+                    </div>
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-tint"></i>
+                        <span class="detail-label">Humedad</span>
+                        <span class="detail-value" id="desktop-humidity">65%</span>
+                    </div>
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-cloud"></i>
+                        <span class="detail-label">Nubosidad</span>
+                        <span class="detail-value" id="desktop-cloudiness">35%</span>
+                    </div>
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-mountain"></i>
+                        <span class="detail-label">Altura</span>
+                        <span class="detail-value" id="desktop-altitude">26 m</span>
+                    </div>
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-thermometer-half"></i>
+                        <span class="detail-label">Sensación</span>
+                        <span class="detail-value" id="desktop-feels-like">30°C</span>
+                    </div>
+                    <div class="detail-item-desktop">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                        <span class="detail-label">Presión</span>
+                        <span class="detail-value" id="desktop-pressure">1013 hPa</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="desktop-sidebar">
+                <section class="desktop-hourly">
+                    <h3>Pronóstico por Horas</h3>
+                    <div class="desktop-hourly-container" id="desktop-hourly-container">
+                        <!-- Las horas se cargarán dinámicamente -->
+                    </div>
+                </section>
+
+                <section class="desktop-map">
+                    <h3>Mapa Interactivo</h3>
+                    <div id="desktop-map" class="desktop-map-container"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Report Modal -->
+    <div id="weather-report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reporte Meteorológico Detallado</h2>
+                <button class="close-btn" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="report-section">
+                    <h3>Condiciones Actuales</h3>
+                    <p>Las condiciones meteorológicas actuales muestran un clima parcialmente nublado con temperatura de 28°C y humedad relativa del 65%. La presión atmosférica se mantiene estable en 1013 hPa.</p>
+                </div>
+                <div class="report-section">
+                    <h3>Análisis Técnico</h3>
+                    <p>Según los datos satelitales de la NASA y las fórmulas meteorológicas aplicadas, se observa una probabilidad de precipitación del 25% para las próximas 6 horas.</p>
+                </div>
+                <div class="report-section">
+                    <h3>Recomendaciones</h3>
+                    <ul>
+                        <li>Mantener hidratación adecuada debido a las altas temperaturas</li>
+                        <li>Usar protección solar durante las horas de mayor radiación</li>
+                        <li>Estar preparado para posibles lluvias ligeras</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
