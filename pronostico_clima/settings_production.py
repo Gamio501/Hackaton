@@ -16,13 +16,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# ALLOWED_HOSTS configuration for Railway
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,healthcheck.railway.app,*.railway.app').split(',')
-# Add Railway domains if not already present
-railway_domains = ['healthcheck.railway.app', '*.railway.app']
-for domain in railway_domains:
-    if domain not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(domain)
+# ALLOWED_HOSTS will be set later in the file
 
 # Application definition
 INSTALLED_APPS = [
@@ -113,6 +107,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+
+# CSRF settings for Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+    'https://web-production-7645a.up.railway.app',
+]
+
+# Allow all hosts for Railway
+ALLOWED_HOSTS = ['*']
 
 # Logging
 LOGGING = {
